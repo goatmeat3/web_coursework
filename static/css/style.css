@@ -1,0 +1,30 @@
+/* static/css/style.css */
+.subject-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.subject-row input {
+    flex: 1;
+}
+
+.remove-subject {
+    color: #dc3545;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.remove-subject:hover {
+    color: #b02a37;
+}
+
+/* Стили для валидации */
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+.was-validated .form-control:valid {
+    border-color: #198754;
+}
