@@ -140,6 +140,50 @@ def create_student():
         return jsonify({"error": str(e)}), 500
 
 
+# API: Получить данные одного студента с его оценками
+@app.route('/api/students/<int:student_id>', methods=['GET'])
+def get_student(student_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Получаем основную информацию о студенте
+        cur.execute('''
+            SELECT 
+                s.*,
+                g.group_name,
+                spec.specialty_name,
+                f.faculty_name,
+                f.faculty_type
+            FROM Students s
+            JOIN Groups g ON s.group_id = g.group_id
+            JOIN Specialties spec ON g.specialty_id = spec.specialty_id
+            JOIN Faculties f ON spec.faculty_id = f.faculty_id
+            WHERE s.student_id = %s
+        ''', (student_id,))
+
+        student = cur.fetchone()
+
+        if not student:
+            return jsonify({"error": "Студент не найден"}), 404
+
+        # Получаем оценки студента
+        cur.execute('''
+            SELECT subject, grade 
+            FROM Grades 
+            WHERE student_id = %s 
+            ORDER BY subject
+        ''', (student_id,))
+
+        grades = cur.fetchall()
+        student['grades'] = grades
+
+        cur.close()
+        conn.close()
+        return jsonify(student)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

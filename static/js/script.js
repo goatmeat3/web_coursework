@@ -1,4 +1,79 @@
 // static/js/script.js
+
+// Делаем функцию viewStudent глобальной, чтобы она была доступна из HTML
+async function viewStudent(studentId) {
+    try {
+        const response = await fetch(`/api/students/${studentId}`);
+        const student = await response.json();
+
+        if (response.ok) {
+            // Формируем модальное окно с информацией о студенте
+            const modalHtml = `
+                <div class="modal fade" id="studentModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Карточка студента: ${student.last_name} ${student.first_name}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Личная информация:</h6>
+                                        <p><strong>ФИО:</strong> ${student.last_name} ${student.first_name} ${student.patronymic || ''}</p>
+                                        <p><strong>Дата рождения:</strong> ${student.date_of_birth || 'не указана'}</p>
+                                        <p><strong>Гражданство:</strong> ${student.citizenship || 'не указано'}</p>
+                                        <p><strong>Телефон:</strong> ${student.phone_number || 'не указан'}</p>
+                                        <p><strong>Email:</strong> ${student.email || 'не указан'}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Учебная информация:</h6>
+                                        <p><strong>Группа:</strong> ${student.group_name}</p>
+                                        <p><strong>Направление:</strong> ${student.specialty_name}</p>
+                                        <p><strong>Факультет:</strong> ${student.faculty_name} (${student.faculty_type})</p>
+                                        <p><strong>Год поступления:</strong> ${student.year_of_admission}</p>
+                                    </div>
+                                </div>
+
+                                <h6 class="mt-3">Дисциплины и оценки:</h6>
+                                ${student.grades && student.grades.length > 0 ?
+                                    `<ul class="list-group">
+                                        ${student.grades.map(grade =>
+                                            `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                                ${grade.subject}
+                                                <span class="badge bg-primary rounded-pill">${grade.grade}</span>
+                                            </li>`
+                                        ).join('')}
+                                    </ul>` :
+                                    '<p>Нет данных об оценках</p>'
+                                }
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Добавляем модальное окно в DOM и показываем его
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modal = new bootstrap.Modal(document.getElementById('studentModal'));
+            modal.show();
+
+            // Удаляем модальное окно после закрытия
+            document.getElementById('studentModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+        } else {
+            alert('Ошибка загрузки данных студента: ' + student.error);
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при загрузке данных студента');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Элементы DOM
     const studentForm = document.getElementById('studentForm');
@@ -170,7 +245,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>${student.specialty_name}</td>
                     <td>${student.year_of_admission}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary">Просмотр</button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudent(${student.student_id})">
+                            Просмотр
+                        </button>
                     </td>
                 `;
                 studentsTable.querySelector('tbody').appendChild(row);
