@@ -7,7 +7,7 @@ class Faculties(models.Model):
     faculty_type = models.CharField(max_length=50)
 
     class Meta:
-        db_table = 'Faculties'
+        db_table = 'faculties'
         verbose_name = 'Факультет'
         verbose_name_plural = 'Факультеты'
 
@@ -21,7 +21,7 @@ class Specialties(models.Model):
     faculty = models.ForeignKey(Faculties, on_delete=models.CASCADE, db_column='faculty_id')
 
     class Meta:
-        db_table = 'Specialties'
+        db_table = 'specialties'
         verbose_name = 'Специальность'
         verbose_name_plural = 'Специальности'
 
@@ -35,7 +35,7 @@ class Groups(models.Model):
     specialty = models.ForeignKey(Specialties, on_delete=models.CASCADE, db_column='specialty_id')
 
     class Meta:
-        db_table = 'Groups'
+        db_table = 'groups'
         verbose_name = 'Группа'
         verbose_name_plural = 'Группы'
 
@@ -56,7 +56,7 @@ class Students(models.Model):
     group = models.ForeignKey(Groups, on_delete=models.CASCADE, db_column='group_id', verbose_name='Группа')
 
     class Meta:
-        db_table = 'Students'
+        db_table = 'students'
         verbose_name = 'Студент'
         verbose_name_plural = 'Студенты'
 
@@ -71,7 +71,7 @@ class Grades(models.Model):
     grade = models.CharField(max_length=10, verbose_name='Оценка')
 
     class Meta:
-        db_table = 'Grades'
+        db_table = 'grades'
         verbose_name = 'Оценка'
         verbose_name_plural = 'Оценки'
 

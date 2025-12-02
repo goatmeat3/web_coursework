@@ -3,7 +3,7 @@
 // Делаем функцию viewStudent глобальной, чтобы она была доступна из HTML
 async function viewStudent(studentId) {
     try {
-        const response = await fetch(`/api/students/${studentId}`);
+        const response = await fetch(`/api/students/${studentId}/`);
         const student = await response.json();
 
         if (response.ok) {
@@ -29,9 +29,8 @@ async function viewStudent(studentId) {
                                     <div class="col-md-6">
                                         <h6>Учебная информация:</h6>
                                         <p><strong>Группа:</strong> ${student.group_name}</p>
-                                        <p><strong>Направление:</strong> ${student.specialty_name}</p>
-                                        <p><strong>Факультет:</strong> ${student.faculty_name} (${student.faculty_type})</p>
                                         <p><strong>Год поступления:</strong> ${student.year_of_admission}</p>
+                                        <p><strong>ID студента:</strong> ${student.student_id}</p>
                                     </div>
                                 </div>
 
@@ -74,6 +73,23 @@ async function viewStudent(studentId) {
     }
 }
 
+// Функция для получения CSRF токена
+function getCSRFToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Элементы DOM
     const studentForm = document.getElementById('studentForm');
@@ -87,23 +103,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 1. Загружаем группы при загрузке страницы
     loadGroups();
+    // 2. Загружаем таблицу студентов
+    loadStudentsTable();
 
-    // 2. Обработчик для кнопки "Добавить дисциплину"
+    // 3. Обработчик для кнопки "Добавить дисциплину"
     addSubjectBtn.addEventListener('click', addSubjectField);
 
-    // 3. Валидация полей Имя/Фамилия в реальном времени
+    // 4. Валидация полей Имя/Фамилия в реальном времени
     document.getElementById('lastName').addEventListener('input', validateNameField);
     document.getElementById('firstName').addEventListener('input', validateNameField);
 
-    // 4. Обработчик отправки формы
+    // 5. Обработчик отправки формы
     studentForm.addEventListener('submit', handleFormSubmit);
 
     // ===== ФУНКЦИИ =====
 
-    // Загрузка групп из API
+    // Загрузка групп из API Django
     async function loadGroups() {
         try {
-            const response = await fetch('/api/groups');
+            const response = await fetch('/api/groups/');
             const groups = await response.json();
 
             // Очищаем селект и добавляем группы
@@ -125,8 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const subjectDiv = document.createElement('div');
         subjectDiv.className = 'subject-row';
         subjectDiv.innerHTML = `
-            <input type="text" class="form-control" name="subjects[]" placeholder="Название дисциплины" required>
-            <input type="text" class="form-control" name="grades[]" placeholder="Оценка (5, Зачет и т.д.)" required>
+            <input type="text" class="form-control" name="subjects" placeholder="Название дисциплины" required>
+            <input type="text" class="form-control" name="grades" placeholder="Оценка (5, Зачет и т.д.)" required>
             <button type="button" class="btn btn-outline-danger remove-subject" onclick="this.parentElement.remove()">
                 ×
             </button>
@@ -138,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function validateNameField(event) {
         const field = event.target;
         const value = field.value.trim();
-        const russianRegex = /^[А-Яа-яЁё\s\-]*$/; // Только русские буквы, пробелы и дефисы
+        const russianRegex = /^[А-Яа-яЁё\s\-]*$/;
 
         if (value.length > 20) {
             field.classList.add('is-invalid');
@@ -164,6 +182,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Собираем данные формы
         const formData = new FormData(studentForm);
+
+        // Собираем массивы дисциплин и оценок
+        const subjectInputs = subjectsContainer.querySelectorAll('input[name="subjects"]');
+        const gradeInputs = subjectsContainer.querySelectorAll('input[name="grades"]');
+
+        const subjects = [];
+        const grades = [];
+
+        subjectInputs.forEach((input, index) => {
+            if (input.value.trim() && gradeInputs[index].value.trim()) {
+                subjects.push(input.value.trim());
+                grades.push(gradeInputs[index].value.trim());
+            }
+        });
+
         const studentData = {
             last_name: formData.get('last_name'),
             first_name: formData.get('first_name'),
@@ -174,16 +207,17 @@ document.addEventListener('DOMContentLoaded', function() {
             email: formData.get('email') || null,
             year_of_admission: parseInt(formData.get('year_of_admission')),
             group_id: parseInt(formData.get('group_id')),
-            subjects: formData.getAll('subjects[]'),
-            grades: formData.getAll('grades[]')
+            subjects: subjects,
+            grades: grades
         };
 
         try {
-            // Отправляем данные на сервер
-            const response = await fetch('/api/students', {
+            // Отправляем данные на сервер Django с CSRF токеном
+            const response = await fetch('/api/students/create/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
                 },
                 body: JSON.stringify(studentData)
             });
@@ -196,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 studentForm.reset();
                 subjectsContainer.innerHTML = ''; // Очищаем дисциплины
                 subjectCount = 0;
-                loadStudentsTable(); // Показываем таблицу студентов
+                loadStudentsTable(); // Обновляем таблицу студентов
             } else {
                 // Ошибка валидации на сервере
                 alert('Ошибка: ' + result.error);
@@ -230,33 +264,44 @@ document.addEventListener('DOMContentLoaded', function() {
     // Загрузка и отображение таблицы студентов
     async function loadStudentsTable() {
         try {
-            const response = await fetch('/api/students');
+            const response = await fetch('/api/students/');
             const students = await response.json();
 
+            if (students.error) {
+                console.error('Ошибка сервера:', students.error);
+                return;
+            }
+
             // Очищаем таблицу
-            studentsTable.querySelector('tbody').innerHTML = '';
+            const tbody = studentsTable.querySelector('tbody');
+            tbody.innerHTML = '';
 
-            // Заполняем таблицу
-            students.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${student.full_name}</td>
-                    <td>${student.group_name}</td>
-                    <td>${student.specialty_name}</td>
-                    <td>${student.year_of_admission}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudent(${student.student_id})">
-                            Просмотр
-                        </button>
-                    </td>
-                `;
-                studentsTable.querySelector('tbody').appendChild(row);
-            });
+            // Если есть студенты - заполняем таблицу
+            if (students.length > 0) {
+                students.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.full_name}</td>
+                        <td>${student.group_name}</td>
+                        <td>${student.specialty_name}</td>
+                        <td>${student.year_of_admission}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewStudent(${student.student_id})">
+                                Просмотр
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
 
-            // Показываем таблицу
-            studentsTableCard.style.display = 'block';
+                // Показываем таблицу
+                studentsTableCard.style.display = 'block';
+            } else {
+                studentsTableCard.style.display = 'none';
+            }
         } catch (error) {
             console.error('Ошибка загрузки студентов:', error);
+            studentsTableCard.style.display = 'none';
         }
     }
 
