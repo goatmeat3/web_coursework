@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class Faculties(models.Model):
     faculty_id = models.AutoField(primary_key=True)
     faculty_name = models.CharField(max_length=100)

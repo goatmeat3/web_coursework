@@ -1,9 +1,9 @@
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 import json
 import re
-from .models import Students, Groups, Specialties, Faculties, Grades
+from .models import Students, Groups, Grades
 
 
 # Главная страница
@@ -106,7 +106,7 @@ def create_student(request):
     return JsonResponse({"error": "Метод не разрешен"}, status=405)
 
 
-# API: получить данные одного студента (для расширения)
+# API: получить данные одного студента
 @csrf_exempt
 def get_student_detail(request, student_id):
     try:
@@ -118,9 +118,101 @@ def get_student_detail(request, student_id):
             'last_name': student.last_name,
             'first_name': student.first_name,
             'patronymic': student.patronymic,
+            'date_of_birth': student.date_of_birth,
+            'citizenship': student.citizenship,
+            'phone_number': student.phone_number,
+            'email': student.email,
+            'year_of_admission': student.year_of_admission,
             'group_name': student.group.group_name,
             'grades': [{'subject': g.subject, 'grade': g.grade} for g in grades]
         }
         return JsonResponse(data)
     except Students.DoesNotExist:
         return JsonResponse({"error": "Студент не найден"}, status=404)
+
+
+# API: обновить студента
+@csrf_exempt
+def update_student(request, student_id):
+    if request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+
+            # Получаем студента
+            student = get_object_or_404(Students, student_id=student_id)
+
+            # Валидация обязательных полей
+            if not data.get('last_name') or not data.get('first_name') or not data.get('group_id'):
+                return JsonResponse({"error": "Заполните обязательные поля: Фамилия, Имя, Группа"}, status=400)
+
+            # Валидация имени и фамилии
+            if not validate_name(data['last_name']):
+                return JsonResponse({"error": "Фамилия должна содержать только русские символы (макс. 20)"}, status=400)
+
+            if not validate_name(data['first_name']):
+                return JsonResponse({"error": "Имя должно содержать только русские символы (макс. 20)"}, status=400)
+
+            # Обновляем данные студента
+            student.last_name = data['last_name']
+            student.first_name = data['first_name']
+            student.patronymic = data.get('patronymic')
+            student.date_of_birth = data.get('date_of_birth')
+            student.citizenship = data.get('citizenship')
+            student.phone_number = data.get('phone_number')
+            student.email = data.get('email')
+            student.year_of_admission = data.get('year_of_admission', 2023)
+            student.group_id = data.get('group_id')
+            student.save()
+
+            # Удаляем старые оценки и создаем новые
+            Grades.objects.filter(student=student).delete()
+
+            subjects = data.get('subjects', [])
+            grades = data.get('grades', [])
+
+            for subject, grade in zip(subjects, grades):
+                if subject and grade:
+                    Grades.objects.create(
+                        student=student,
+                        subject=subject,
+                        grade=grade
+                    )
+
+            return JsonResponse({
+                "success": True,
+                "message": "Студент успешно обновлен"
+            })
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Метод не разрешен"}, status=405)
+
+
+# API: удалить студента
+@csrf_exempt
+def delete_student(request, student_id):
+    if request.method == 'DELETE':
+        try:
+            student = get_object_or_404(Students, student_id=student_id)
+
+            # Получаем имя студента для логгирования
+            student_name = f"{student.last_name} {student.first_name}"
+
+            # Удаляем студента (оценки удалятся каскадно из-за on_delete=CASCADE)
+            student.delete()
+
+            print(f"Студент {student_name} (ID: {student_id}) успешно удален")
+
+            return JsonResponse({
+                "success": True,
+                "message": "Студент успешно удален"
+            })
+
+        except Students.DoesNotExist:
+            return JsonResponse({"error": "Студент не найден"}, status=404)
+        except Exception as e:
+            print(f"Ошибка при удалении студента {student_id}: {str(e)}")
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Метод не разрешен"}, status=405)

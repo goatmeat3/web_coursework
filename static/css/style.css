@@ -101,6 +101,7 @@ h1 {
 .btn-outline-danger:hover {
     background-color: var(--soft-coral);
     border-color: var(--soft-coral);
+    color: white;
 }
 
 /* Формы */
@@ -258,4 +259,248 @@ h1 {
     .subject-row input {
         width: 100%;
     }
+}
+
+/* ===== ДОБАВЛЕННЫЕ СТИЛИ ДЛЯ РЕДАКТИРОВАНИЯ И УДАЛЕНИЯ ===== */
+
+/* Стили для кнопок действий в таблице */
+.table td .btn-group-sm > .btn, .table td .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    margin: 2px;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-warning {
+    border-color: #ffc107;
+    color: #ffc107;
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    border: none;
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+}
+
+/* Стили для модального окна с кнопками действий */
+.modal-footer .btn {
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.modal-footer .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Кнопка отмены редактирования */
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    border: none;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #343a40 100%);
+    color: white;
+}
+
+/* Стили для строк дисциплин в виде сетки Bootstrap */
+.subject-row .row {
+    align-items: center;
+}
+
+.subject-row .col-md-6,
+.subject-row .col-md-5 {
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+/* Эффект при наведении на строки таблицы */
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 182, 193, 0.15);
+    transform: scale(1.005);
+    transition: all 0.2s ease;
+}
+
+/* Стили для скрытых полей формы */
+input[type="hidden"] {
+    display: none;
+}
+
+/* Индикатор редактирования */
+.form-control[readonly] {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-color: #ffc107;
+}
+
+/* Улучшенные стили для мобильных устройств */
+@media (max-width: 768px) {
+    .table td .btn-group-sm > .btn, .table td .btn-sm {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .table td {
+        padding: 8px 5px;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .subject-row .col-md-1 button {
+        width: 100%;
+    }
+}
+
+/* Стили для заголовка таблицы */
+#studentsTableCard .card-header {
+    background: linear-gradient(135deg, var(--primary-pink) 0%, var(--peach) 100%);
+}
+
+#studentsTableCard .card-header h5 {
+    color: white;
+    font-weight: 600;
+}
+
+/* Стили для кнопок в модальном окне просмотра */
+.modal-footer .btn-outline-primary {
+    border-color: var(--primary-pink);
+    color: var(--primary-pink);
+}
+
+.modal-footer .btn-outline-primary:hover {
+    background-color: var(--primary-pink);
+    border-color: var(--primary-pink);
+    color: white;
+}
+
+.modal-footer .btn-outline-danger {
+    border-color: var(--soft-coral);
+    color: var(--soft-coral);
+}
+
+.modal-footer .btn-outline-danger:hover {
+    background-color: var(--soft-coral);
+    border-color: var(--soft-coral);
+    color: white;
+}
+
+/* Стили для кнопок в таблице */
+.table td .btn-outline-primary {
+    border-color: var(--primary-pink);
+    color: var(--primary-pink);
+    border-radius: 8px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.table td .btn-outline-primary:hover {
+    background-color: var(--primary-pink);
+    border-color: var(--primary-pink);
+    color: white;
+}
+
+/* Убираем кнопки редактирования и удаления из таблицы */
+.table td .btn-outline-warning,
+.table td .btn-outline-danger {
+    display: none !important;
+}
+
+/* Сброс валидации при редактировании */
+.form-control.is-valid:focus {
+    border-color: var(--primary-pink);
+    box-shadow: 0 0 0 0.2rem rgba(255, 182, 193, 0.25);
+}
+
+/* Убираем зеленую галочку Bootstrap */
+.form-control.is-valid {
+    background-image: none;
+    border-color: var(--primary-pink);
+}
+
+.form-control.is-invalid {
+    background-image: none;
+    border-color: var(--soft-coral);
+}
+
+/* Кастомные стили для валидации */
+.form-control.valid {
+    border-color: var(--primary-pink) !important;
+}
+
+.form-control.invalid {
+    border-color: var(--soft-coral) !important;
+}
+
+/* Стили для уведомлений */
+.custom-notification {
+    border: none;
+    border-radius: 10px;
+    padding: 15px 20px;
+    animation: slideInRight 0.3s ease-out;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Анимация для спиннера */
+.spinner-border {
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+/* Модальное окно подтверждения удаления */
+#deleteConfirmationModal .modal-content {
+    border: 2px solid #f08080;
+}
+
+#deleteConfirmationModal .modal-header {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+}
+
+#deleteConfirmationModal .modal-title {
+    color: #721c24;
+}
+
+/* Стили для состояния загрузки */
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
