@@ -463,13 +463,12 @@ async function loadGroups() {
 }
 
 // ================================================
-// DOMContentLoaded начинается здесь
+// DOMContentLoaded
 // ================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 DOM загружен');
 
-    // Элементы DOM
     const studentForm = document.getElementById('studentForm');
     const groupSelect = document.getElementById('group');
     const subjectsContainer = document.getElementById('subjectsContainer');
@@ -490,10 +489,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('🏁 Загрузка данных завершена');
     }, 100);
 
-    // Обработчики событий
     addSubjectBtn.addEventListener('click', () => addSubjectField());
 
-    // Валидация полей Имя/Фамилия - сбрасываем при фокусе
+    // Валидация полей Имя/Фамилия
     const lastNameInput = document.getElementById('lastName');
     const firstNameInput = document.getElementById('firstName');
 
@@ -664,4 +662,4 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
 
-}); // <-- ЗДЕСЬ ЗАКРЫВАЕТСЯ DOMContentLoaded
+});
